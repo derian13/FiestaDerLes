@@ -1,32 +1,31 @@
-// ===== Música autoplay con bypass de restricciones =====
+// ===== Música autoplay (con bypass de restricciones) =====
 const bgAudio = document.getElementById('bgAudio');
-bgAudio.play().catch(()=>{ 
-  console.log('Autoplay bloqueado, esperando interacción del usuario');
-});
-document.body.addEventListener('click', function enableAudio(){
-  bgAudio.muted = false;
-  bgAudio.play();
-  document.body.removeEventListener('click', enableAudio);
+bgAudio?.play().catch(() => {
+  document.body.addEventListener('click', () => {
+    bgAudio.muted = false;
+    bgAudio.play();
+  }, { once: true });
 });
 
 // ===== Utilidades =====
-const $ = (q,ctx=document)=>ctx.querySelector(q);
-const pad = n => n<10 ? '0'+n : ''+n;
+const $   = (q, ctx=document) => ctx.querySelector(q);
+const pad = n => n < 10 ? '0' + n : '' + n;
 
-const body = document.body;
-const isoWhen = body.dataset.when;
-const place   = body.dataset.lugar || '';
-const addr    = body.dataset.dir   || '';
-const names   = body.dataset.name  || 'Derian Hernandez & Leslin Bernales';
-const ages    = body.dataset.edad  || '30 & 28 años';
-const waNum   = body.dataset.wa    || '51988343240';
+const body   = document.body;
+const isoWhen= body.dataset.when;
+const place  = body.dataset.lugar || '';
+const addr   = body.dataset.dir   || '';
+const names  = body.dataset.name  || 'Derian Hernandez & Leslin Bernales';
+const ages   = body.dataset.edad  || '30 & 27 años';
+const waNum  = body.dataset.wa    || '51988343240';
 
-// ===== Partículas minimalistas =====
+// ===== Partículas minimalistas (estrellas/diamantes/puntos) =====
 (function particles(){
-  const chars = ['◆','●','✦'];
+  const chars  = ['◆','●','✦'];
   const layers = [$('#layerA'), $('#layerB'), $('#layerC')];
   const counts = [22, 18, 14];
   layers.forEach((layer, idx)=>{
+    if (!layer) return;
     for(let i=0;i<counts[idx];i++){
       const el = document.createElement('i');
       el.className = 'particle';
@@ -46,12 +45,13 @@ const waNum   = body.dataset.wa    || '51988343240';
 
 // ===== Countdown y fecha legible =====
 (function countdown(){
+  if (!isoWhen) return;
   const target = new Date(isoWhen);
   const dd=$('#dd'), hh=$('#hh'), mm=$('#mm'), ss=$('#ss'), human=$('#humanWhen');
   try{
     const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' };
-    human.textContent = target.toLocaleString('es-PE', opts);
-  }catch(e){ human.textContent = target.toString(); }
+    if (human) human.textContent = target.toLocaleString('es-PE', opts);
+  }catch(e){ if (human) human.textContent = target.toString(); }
 
   function tick(){
     const now = new Date();
@@ -61,17 +61,23 @@ const waNum   = body.dataset.wa    || '51988343240';
     const h = Math.floor(diff/H); diff%=H;
     const m = Math.floor(diff/M); diff%=M;
     const s = Math.floor(diff/S);
-    dd.textContent = pad(d); hh.textContent = pad(h); mm.textContent = pad(m); ss.textContent = pad(s);
+    if (dd) dd.textContent = pad(d);
+    if (hh) hh.textContent = pad(h);
+    if (mm) mm.textContent = pad(m);
+    if (ss) ss.textContent = pad(s);
   }
   tick(); setInterval(tick, 1000);
 })();
 
-// ===== Acciones: Maps / Share / ICS =====
+// ===== Acciones: Maps / Share / Calendario (optimizado móvil) =====
 (function actions(){
+  // Maps: tu ubicación exacta
   const btnMaps = $('#btnMaps');
-  const q = encodeURIComponent((place? (place+', '):'') + addr);
-  btnMaps.href = 'https://maps.app.goo.gl/Fa2wSgyYWK4hVmtVA';
-  btnMaps.target = '_blank';
+  if (btnMaps) {
+    btnMaps.href = 'https://maps.app.goo.gl/Fa2wSgyYWK4hVmtVA';
+    btnMaps.target = '_blank';
+    btnMaps.rel = 'noopener';
+  }
 
   // Compartir
   $('#btnShare')?.addEventListener('click', async ()=>{
@@ -87,15 +93,16 @@ const waNum   = body.dataset.wa    || '51988343240';
     }catch(e){}
   });
 
-  // === Agregar a Calendario (optimizado para móvil) ===
+  // Agregar a Calendario (iOS -> .ics; Android/otros -> GCal, fallback .ics)
   $('#btnICS')?.addEventListener('click', ()=>{
+    if (!isoWhen) return;
+
     const start = new Date(isoWhen);
     const end   = new Date(start.getTime() + 4*60*60*1000); // 4h por defecto
 
     const isIOS     = /iP(hone|od|ad)/.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
 
-    // Fechas en formato UTC para GCal e ICS
     function fmtUTC(d){
       const y=d.getUTCFullYear();
       const m=String(d.getUTCMonth()+1).padStart(2,'0');
@@ -106,11 +113,11 @@ const waNum   = body.dataset.wa    || '51988343240';
       return `${y}${m}${dd}T${hh}${mm}${ss}Z`;
     }
 
-    const SUMMARY = `Invitación • ${names}`;
-    const LOCATION= `${place}${place&&addr?', ':''}${addr}`;
+    const SUMMARY     = `Invitación • ${names}`;
+    const LOCATION    = `${place}${place&&addr?', ':''}${addr}`;
     const DESCRIPTION = `Cumpleaños compartido de ${names} (${ages}). Dress Code: Sport Elegante.`;
 
-    // 1) URL para Google Calendar (Android o navegadores con GCal)
+    // Google Calendar URL (Android/otros)
     const gcalUrl = (() => {
       const params = new URLSearchParams({
         action: 'TEMPLATE',
@@ -122,7 +129,7 @@ const waNum   = body.dataset.wa    || '51988343240';
       return `https://calendar.google.com/calendar/render?${params.toString()}`;
     })();
 
-    // 2) Archivo ICS para Apple Calendar / Outlook / fallback universal
+    // Contenido .ics (iOS / fallback universal)
     const icsText =
 `BEGIN:VCALENDAR
 VERSION:2.0
@@ -130,7 +137,7 @@ PRODID:-//Invitacion HTML Pura//ES
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 BEGIN:VEVENT
-UID:${crypto.randomUUID ? crypto.randomUUID() : ('inv-'+Date.now())}@inv-html
+UID:${(crypto?.randomUUID ? crypto.randomUUID() : 'inv-'+Date.now())}@inv-html
 DTSTAMP:${fmtUTC(new Date())}
 DTSTART:${fmtUTC(start)}
 DTEND:${fmtUTC(end)}
@@ -143,21 +150,21 @@ END:VCALENDAR`;
     function openICSInline(){
       const blob = new Blob([icsText], {type:'text/calendar;charset=utf-8'});
       const url  = URL.createObjectURL(blob);
-      // En iOS, cambiar location.href dispara el diálogo de Calendario
+      // En iOS, cambiar location.href abre el diálogo de Calendario
       window.location.href = url;
       setTimeout(()=>URL.revokeObjectURL(url), 4000);
     }
 
     try{
       if (isIOS) {
-        // iPhone / iPad: abrir ICS directo en Calendario
+        // iPhone/iPad: .ics directo a Calendario
         openICSInline();
       } else if (isAndroid) {
-        // Android: preferir Google Calendar, si falla -> ICS
+        // Android: preferir Google Calendar; si no se puede, fallback .ics
         const win = window.open(gcalUrl, '_blank');
         if (!win) openICSInline();
       } else {
-        // Desktop u otros: intenta GCal, si no, ICS
+        // Desktop u otros: intentar GCal; si no, .ics
         const win = window.open(gcalUrl, '_blank');
         if (!win) openICSInline();
       }
@@ -167,3 +174,52 @@ END:VCALENDAR`;
   });
 })();
 
+// ===== RSVP por WhatsApp + Confetti =====
+(function rsvp(){
+  const form = $('#rsvpForm');
+  const msg  = $('#rsvpMsg');
+  const waBlank = $('#btnWAblank');
+  const confetti = $('#confetti');
+
+  function blastConfetti(){
+    if (!confetti) return;
+    confetti.innerHTML=''; 
+    const N=120, vw=innerWidth, vh=innerHeight;
+    for(let i=0;i<N;i++){
+      const b=document.createElement('b');
+      const dx=(Math.random()*2-1)*(vw*.35);
+      const dy=(Math.random()*2-0.2)*(vh*.45);
+      b.style.setProperty('--x', vw/2+'px');
+      b.style.setProperty('--y', vh*0.3+'px');
+      b.style.setProperty('--dx', dx+'px');
+      b.style.setProperty('--dy', dy+'px');
+      b.style.backgroundColor=`hsl(${Math.random()*360},80%,60%)`;
+      confetti.appendChild(b);
+    }
+    setTimeout(()=>{confetti.innerHTML='';},1100);
+  }
+
+  form?.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const name = form.name?.value?.trim() || '';
+    const will = form.will?.value || '';
+    if (!name || !will){
+      if (msg) msg.textContent = 'Por favor completa tu nombre y si asistirás.';
+      return;
+    }
+    let t = `Hola, soy ${name}.\n`;
+    t += `RSVP: ${will==='yes' ? 'Asistiremos ✅' : 'No asistiremos ❌'}\n`;
+    t += `Evento: Cumpleaños compartido de ${names} (${ages})\n${place} - ${addr}\n`;
+    t += `Fecha: ${new Date(isoWhen).toLocaleString('es-PE',{dateStyle:'full', timeStyle:'short'})}`;
+
+    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(t)}`, '_blank');
+    if (msg) msg.innerHTML = '<span class="ok">¡Gracias! Se abrió WhatsApp para enviar tu confirmación.</span>';
+    blastConfetti();
+    form.reset();
+  });
+
+  waBlank?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    window.open(`https://wa.me/${waNum}`, '_blank');
+  });
+})();
