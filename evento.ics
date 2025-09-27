@@ -1,0 +1,25 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Invitacion HTML Pura//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:inv-1759009597@inv-html
+DTSTAMP:20250927T214637Z
+DTSTART:20251012T010000Z
+DTEND:20251012T080000Z
+SUMMARY:Cumpleaños de Derian y Leslin
+LOCATION:Coop. Señor de Luren, Mz LI Lote 15, Ica, Perú
+DESCRIPTION:Cumpleaños de Derian y Leslin\nLugar: Coop. Señor de Luren, Mz LI Lote 15, Ica, Perú\nReferencia: Pasando los ficus, a espaldas del grifo camino a Huacachina\n\nPrepárate para una noche de música, baile y risas. Habrá sorpresas, buena vibra y mucha diversión. Dress Code: Sport Elegante. ¡Nos encantará verte!
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Recordatorio 1 día antes
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT60M
+ACTION:DISPLAY
+DESCRIPTION:Recordatorio 1 hora antes
+END:VALARM
+END:VEVENT
+END:VCALENDAR
