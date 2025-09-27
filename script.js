@@ -70,9 +70,10 @@ const waNum   = body.dataset.wa    || '51988343240';
 (function actions(){
   const btnMaps = $('#btnMaps');
   const q = encodeURIComponent((place? (place+', '):'') + addr);
-  btnMaps.href = 'https://www.google.com/maps?q=' + q;
+  btnMaps.href = 'https://maps.app.goo.gl/Fa2wSgyYWK4hVmtVA';
   btnMaps.target = '_blank';
 
+  // Compartir
   $('#btnShare')?.addEventListener('click', async ()=>{
     const title = `Invitación • ${names}`;
     const text  = `¡Acompáñanos! ${names} (${ages})\n${place} - ${addr}`;
@@ -86,9 +87,15 @@ const waNum   = body.dataset.wa    || '51988343240';
     }catch(e){}
   });
 
+  // === Agregar a Calendario (optimizado para móvil) ===
   $('#btnICS')?.addEventListener('click', ()=>{
     const start = new Date(isoWhen);
-    const end = new Date(start.getTime() + 4*60*60*1000);
+    const end   = new Date(start.getTime() + 4*60*60*1000); // 4h por defecto
+
+    const isIOS     = /iP(hone|od|ad)/.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+
+    // Fechas en formato UTC para GCal e ICS
     function fmtUTC(d){
       const y=d.getUTCFullYear();
       const m=String(d.getUTCMonth()+1).padStart(2,'0');
@@ -98,10 +105,25 @@ const waNum   = body.dataset.wa    || '51988343240';
       const ss=String(d.getUTCSeconds()).padStart(2,'0');
       return `${y}${m}${dd}T${hh}${mm}${ss}Z`;
     }
+
     const SUMMARY = `Invitación • ${names}`;
     const LOCATION= `${place}${place&&addr?', ':''}${addr}`;
-    const DESCRIPTION = `Cumpleaños compartido de ${names} (${ages})`;
-    const ICS =
+    const DESCRIPTION = `Cumpleaños compartido de ${names} (${ages}). Dress Code: Sport Elegante.`;
+
+    // 1) URL para Google Calendar (Android o navegadores con GCal)
+    const gcalUrl = (() => {
+      const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: SUMMARY,
+        dates: `${fmtUTC(start)}/${fmtUTC(end)}`,
+        details: DESCRIPTION,
+        location: LOCATION
+      });
+      return `https://calendar.google.com/calendar/render?${params.toString()}`;
+    })();
+
+    // 2) Archivo ICS para Apple Calendar / Outlook / fallback universal
+    const icsText =
 `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Invitacion HTML Pura//ES
@@ -117,61 +139,31 @@ LOCATION:${LOCATION.replace(/[,;]/g,'')}
 DESCRIPTION:${DESCRIPTION.replace(/[,;]/g,'')}
 END:VEVENT
 END:VCALENDAR`;
-    const blob = new Blob([ICS], {type:'text/calendar;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'evento.ics';
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1000);
+
+    function openICSInline(){
+      const blob = new Blob([icsText], {type:'text/calendar;charset=utf-8'});
+      const url  = URL.createObjectURL(blob);
+      // En iOS, cambiar location.href dispara el diálogo de Calendario
+      window.location.href = url;
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    }
+
+    try{
+      if (isIOS) {
+        // iPhone / iPad: abrir ICS directo en Calendario
+        openICSInline();
+      } else if (isAndroid) {
+        // Android: preferir Google Calendar, si falla -> ICS
+        const win = window.open(gcalUrl, '_blank');
+        if (!win) openICSInline();
+      } else {
+        // Desktop u otros: intenta GCal, si no, ICS
+        const win = window.open(gcalUrl, '_blank');
+        if (!win) openICSInline();
+      }
+    }catch(_){
+      openICSInline();
+    }
   });
 })();
 
-// ===== RSVP por WhatsApp y Confetti =====
-(function rsvp(){
-  const form = $('#rsvpForm');
-  const msg = $('#rsvpMsg');
-  const waBlank = $('#btnWAblank');
-  const confetti = $('#confetti');
-
-  function blastConfetti(x, y){
-    confetti.innerHTML=''; const N=120;
-    const vw = Math.max(1, innerWidth), vh = Math.max(1, innerHeight);
-    const cx = x ?? vw/2, cy = y ?? (vh*0.3);
-    for(let i=0;i<N;i++){
-      const b=document.createElement('b');
-      const dx=(Math.random()*2-1)*(vw*.35);
-      const dy=(Math.random()*2-0.2)*(vh*.45);
-      b.style.setProperty('--x', cx+'px');
-      b.style.setProperty('--y', cy+'px');
-      b.style.setProperty('--dx', dx+'px');
-      b.style.setProperty('--dy', dy+'px');
-      confetti.appendChild(b);
-    }
-    setTimeout(()=>confetti.innerHTML='', 1100);
-  }
-
-  form?.addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const name = form.name?.value?.trim() || '';
-    const will = form.will?.value || '';
-    if (!name || !will){
-      msg.textContent = 'Por favor completa tu nombre y si asistirás.';
-      return;
-    }
-    let t = `Hola, soy ${name}.\n`;
-    t += `RSVP: ${will==='yes'?'Asistiremos ✅':'No asistiremos ❌'}\n`;
-    t += `Evento: Cumpleaños de ${names} (${ages})\n${place} - ${addr}\n`;
-    t += `Fecha: ${new Date(isoWhen).toLocaleString('es-PE',{dateStyle:'full', timeStyle:'short'})}`;
-
-    const url = `https://wa.me/${waNum}?text=${encodeURIComponent(t)}`;
-    window.open(url, '_blank');
-    msg.innerHTML = '<span class="ok">¡Gracias! Se abrió WhatsApp para enviar tu confirmación.</span>';
-    blastConfetti();
-    form.reset();
-  });
-
-  waBlank?.addEventListener('click', (e)=>{
-    e.preventDefault();
-    window.open(`https://wa.me/${waNum}`, '_blank');
-  });
-})();
