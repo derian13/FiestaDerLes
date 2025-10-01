@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es" data-theme="elegant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0d0d0d">
+  <title>🎉 Cumpleaños de Derian & Leslin 🎉</title>
+  <meta name="description" content="Invitación al cumpleaños compartido de Derian Hernandez y Leslin Bernales - Minimalista y colorido">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body
+  data-when="2025-10-11T20:00:00-05:00"
+  data-name="Derian Hernandez"
+  data-edad="30años"
+  data-lugar="Coop. Señor de Luren"
+  data-dir="Mz LI Lote 15, Coop. Señor de Luren"
+  data-wa="51988343240"
+>
+
+  <!-- Música de fondo -->
+  <audio id="bgAudio" autoplay loop muted>
+    <source src="happy.mp3" type="audio/mp3">
+    Tu navegador no soporta el formato de audio.
+  </audio>
+
+  <!-- Fondo animado -->
+  <div class="sky" aria-hidden="true">
+    <div class="layer" id="layerA"></div>
+    <div class="layer" id="layerB"></div>
+    <div class="layer" id="layerC"></div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <div class="hero">
+        <div class="kicker">🎊 ¡Ven a celebrar! 🎊</div>
+        <h1>Derian Hernandez </h1>
+        <!--<h2 class="muted">Edades: <span class="accent2">30 & 27 años</span></h2>-->
+        <p class="muted">Un cumpleaños lleno de alegría, baile y diversión. ¡No te lo pierdas! 🎉🥳</p>
+
+        <!-- Countdown -->
+        <div class="countdown" id="countdown" role="timer" aria-live="polite">
+          <div class="tbox"><strong id="dd">--</strong><span>Días</span></div>
+          <div class="tbox"><strong id="hh">--</strong><span>Horas</span></div>
+          <div class="tbox"><strong id="mm">--</strong><span>Min</span></div>
+          <div class="tbox"><strong id="ss">--</strong><span>Seg</span></div>
+        </div>
+        <div class="actions" style="margin:12px 0 4px">
+          <a class="btn" id="btnICS" href="eventoDer.ics">🗓️ Agregar a Calendario</button>
+          <a class="btn light" id="btnMaps" target="_blank" rel="noopener">📍 Ver en Maps</a>
+          <button class="btn warn" id="btnShare" type="button">✨ Compartir</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="grid" id="main">
+      <!-- Columna izquierda: detalles -->
+      <section class="card section">
+        <h2>Detalles del evento</h2>
+        <div class="info" style="margin-top:8px">
+          <div class="item">
+            <strong>Fecha y hora</strong>
+            <div class="muted" id="humanWhen">—</div>
+          </div>
+          <div class="item">
+            <strong>Lugar</strong>
+            <div class="muted">Coop. Señor de Luren Mz LI Lote 15</div>
+            <strong>Referencia</strong>
+            <div class="muted">Pasando los ficus a espaldas del grifo, camino a Huacachina</div>
+          </div>
+          <div class="item">
+            <strong>Dress Code</strong>
+            <div class="muted">Sport Elegante</div>
+          </div>
+          <div class="item">
+            <strong>Prohibido!!</strong>
+            <div class="muted">Aburrirse 😩 y no traer regalos 🎁</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Columna derecha: RSVP simplificado -->
+      <section class="card section">
+        <h2>Confirma tu asistencia (RSVP)</h2>
+        <form id="rsvpForm" autocomplete="on" novalidate>
+          <div class="grid2">
+            <div>
+              <label>Nombre y apellido</label>
+              <input name="name" placeholder="Tu nombre completo" required>
+            </div>
+            <div>
+              <label>¿Asistirás?</label>
+              <select name="will" required>
+                <option value="">Selecciona…</option>
+                <option value="yes">Sí, allí estaré</option>
+                <option value="no">No podré ir</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row" style="justify-content:flex-start;margin-top:6px">
+            <button class="btn" type="submit">✅ Enviar por WhatsApp</button>
+            <a class="btn light" id="btnWAblank">💬 Abrir WhatsApp</a>
+          </div>
+          <div id="rsvpMsg" class="help" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+    </main>
+
+  </div>
+
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+  <script src="script.js"></script>
+  <script>
+    // Cambiar link de Maps a tu ubicación exacta
+    document.getElementById('btnMaps').href = 'https://maps.app.goo.gl/Fa2wSgyYWK4hVmtVA';
+  </script>
+</body>
+</html>
